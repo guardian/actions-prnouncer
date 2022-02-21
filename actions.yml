@@ -1,0 +1,31 @@
+name: "Notify google chats about PR's"
+description: "Periodically scan repositories for any un-reviewed PR's and create a google chat message with them."
+inputs:
+  google-webhook-url:
+    description: "Google chats incoming webhook URL to post messages to"
+    required: true
+  github-repositories:
+    description: "Comma delimited list of repository owners (eg guardian/dotcom-rendering)"
+    required: true
+    default: ${{ github.repository }}
+  github-token:
+    description: "Github token used to authenticate to Github API"
+    required: true
+    default: ${{ github.token }}
+  github-ignored-users:
+    description: "Comma delimited list of user ID's to ignore"
+    required: true
+    default: "49699333"
+  github-ignored-labels:
+    description: "Comma delimited list of label names to ignore"
+    required: true
+    default: "Stale"
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  env:
+    GITHUB_REPOSITORIES: ${{ inputs.github-repositories }}
+    GITHUB_TOKEN: ${{ inputs.github-token }}
+    GITHUB_IGNORED_USERS: ${{ inputs.github-ignored-users }}
+    GITHUB_IGNORED_LABELS: ${{ inputs.github-ignored-labels }}
+    GOOGLE_WEBHOOK_URL: ${{ inputs.google-webhook-url }}
