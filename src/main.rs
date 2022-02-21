@@ -4,6 +4,7 @@ mod github;
 mod google;
 
 use anyhow::{Context, Error};
+use chrono::Datelike;
 use dotenv::dotenv;
 
 use log::info;
@@ -132,9 +133,18 @@ async fn main() -> Result<(), Error> {
         );
     }
 
+    let weekday = match chrono::offset::Local::now().date().weekday() {
+        chrono::Weekday::Mon => "Monday",
+        chrono::Weekday::Tue => "Tuesday",
+        chrono::Weekday::Wed => "Wednesday",
+        chrono::Weekday::Thu => "Thursday",
+        chrono::Weekday::Fri => "Friday",
+        chrono::Weekday::Sat => "Saturday",
+        chrono::Weekday::Sun => "Sunday",
+    };
     let mut message = String::new();
 
-    message.push_str("Good morning Team! The following PR's are open and need reviews!\n");
+    message.push_str(format!(":thread: {} Reviews :thread:\n", weekday).as_str());
     message.push_str("(PR's can be hidden from this bot by adding the Stale tag)\n");
     message.push_str("--------------------\n\n");
 
