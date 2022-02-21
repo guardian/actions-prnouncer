@@ -1,5 +1,3 @@
-use std::fmt::format;
-
 use anyhow::{Context, Result};
 use getset::Getters;
 use serde::Deserialize;

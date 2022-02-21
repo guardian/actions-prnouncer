@@ -1,4 +1,3 @@
-#[macro_use]
 extern crate getset;
 
 mod github;
@@ -56,7 +55,7 @@ async fn scan_repository(
         let mut has_ignore_label = false;
 
         for label in pull_request.labels() {
-            if (ignored_labels.contains(&label.name().as_str())) {
+            if ignored_labels.contains(&label.name().as_str()) {
                 info!(
                     "Ignoring PR {}({}) as it has an ignored label ({})",
                     pull_request.id(),
@@ -67,7 +66,7 @@ async fn scan_repository(
             }
         }
 
-        if (has_ignore_label) {
+        if has_ignore_label {
             continue;
         }
 
@@ -121,7 +120,7 @@ async fn main() -> Result<(), Error> {
 
     let mut pull_requests_to_review: Vec<GithubPullRequest> = vec![];
 
-    for (index, repository) in repositories.iter().enumerate() {
+    for repository in repositories {
         pull_requests_to_review.append(
             &mut scan_repository(
                 repository.to_string(),
