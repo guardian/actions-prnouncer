@@ -26,6 +26,8 @@ This action automatically sends a message to google chats detailing the list of 
 
 ## Example usage
 
+```
 uses: guardian/google-chats-pr-announcer@v1
-with:
-google-webhook-url: 'https://chats.google.com...'
+  with:
+    google-webhook-url: 'https://chats.google.com...'
+```

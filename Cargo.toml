@@ -1,5 +1,5 @@
 [package]
-name = "pr-bot"
+name = "google-chats-pr-announcer"
 version = "0.1.0"
 edition = "2021"
 

@@ -173,6 +173,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "google-chats-pr-announcer"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "dotenv",
+ "getset",
+ "log",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "h2"
 version = "0.3.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -520,20 +534,6 @@ name = "pkg-config"
 version = "0.3.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "58893f751c9b0412871a09abd62ecd2a00298c6c83befa223ef98c52aef40cbe"
-
-[[package]]
-name = "pr-bot"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "dotenv",
- "getset",
- "log",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
-]
 
 [[package]]
 name = "proc-macro-error"
