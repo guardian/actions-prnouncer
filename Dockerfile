@@ -10,7 +10,7 @@ RUN cargo build --release
 FROM debian:bullseye-slim
 
 # copy the build artifact from the build stage
-COPY --from=build ./target/release/google-chats-pr-announcer .
+COPY --from=build ./target/release/google-chats-pr-announcer /
 
 # set the startup command to run your binary
-ENTRYPOINT ["./google-chats-pr-announcer"]
+ENTRYPOINT ["/google-chats-pr-announcer"]
