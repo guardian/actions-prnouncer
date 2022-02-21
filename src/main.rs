@@ -144,7 +144,7 @@ async fn main() -> Result<(), Error> {
     };
     let mut message = String::new();
 
-    message.push_str(format!(":thread: {} Reviews :thread:\n", weekday).as_str());
+    message.push_str(format!("🧵 {} Reviews 🧵\n", weekday).as_str());
     message.push_str("(PR's can be hidden from this bot by adding the Stale tag)\n");
     message.push_str("--------------------\n\n");
 

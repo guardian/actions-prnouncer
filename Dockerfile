@@ -13,4 +13,4 @@ FROM debian:bullseye-slim
 COPY --from=build ./target/release/google-chats-pr-announcer .
 
 # set the startup command to run your binary
-CMD ["./google-chats-pr-announcer"]
+ENTRYPOINT ["./google-chats-pr-announcer"]
