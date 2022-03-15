@@ -73,7 +73,7 @@ async fn scan_repository(
 
         let pull_request_reviews = pull_request.reviews(&github_token).await?;
 
-        println!(
+        info!(
             "Found {} reviews for PR {}({})",
             pull_request_reviews.len(),
             pull_request.id(),
@@ -84,7 +84,7 @@ async fn scan_repository(
         let has_reviews_with_outstanding_comments = false;
 
         for pull_request_review in pull_request_reviews {
-            println!(
+            info!(
                 "Processing review {} for PR {}({})",
                 pull_request_review.id(),
                 pull_request.id(),
