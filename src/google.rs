@@ -11,9 +11,13 @@ impl GoogleChatMessage {
         GoogleChatMessage { text: text }
     }
 
-    pub async fn send(self, webhook_url: String) -> Result<GoogleChatMessage> {
+    pub async fn send(
+        self,
+        webhook_url: &String,
+        thread_key: &String,
+    ) -> Result<GoogleChatMessage> {
         let response = reqwest::Client::new()
-            .post(&webhook_url)
+            .post(webhook_url.replace("{threadKey}", thread_key))
             .body(serde_json::to_string(&self)?)
             .header("User-Agent", "GU-PR-Bot")
             .send()

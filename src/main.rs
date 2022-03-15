@@ -106,8 +106,6 @@ async fn scan_repository(
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    dotenv().ok();
-
     let repositories: String =
         env::var("GITHUB_REPOSITORIES").context("GITHUB_REPOSITORIES must be set")?;
     let repositories: Vec<&str> = repositories.split(",").collect();
@@ -142,26 +140,32 @@ async fn main() -> Result<(), Error> {
         chrono::Weekday::Sat => "Saturday",
         chrono::Weekday::Sun => "Sunday",
     };
+
     let mut message = String::new();
 
     message.push_str(format!("🧵 {} Reviews 🧵\n", weekday).as_str());
     message.push_str("(PR's can be hidden from this bot by adding the Stale tag)\n");
     message.push_str("--------------------\n\n");
 
-    for pull_request in pull_requests_to_review {
-        message.push_str(
-            format!(
-                "<{}|{}#{}> - {}\n",
-                pull_request.html_url(),
-                pull_request.head().repo().name(),
-                pull_request.number(),
-                pull_request.title()
-            )
-            .as_str(),
-        );
-    }
+    let thread_key = format!("pr-thread-{}", chrono::offset::Local::now());
 
-    GoogleChatMessage::from(message).send(webhook_url).await?;
+    info!("Using thread key {}", thread_key);
+
+    GoogleChatMessage::from(message)
+        .send(&webhook_url, &thread_key)
+        .await?;
+
+    for pull_request in pull_requests_to_review {
+        GoogleChatMessage::from(format!(
+            "<{}|{}#{}> - {}\n",
+            pull_request.html_url(),
+            pull_request.head().repo().name(),
+            pull_request.number(),
+            pull_request.title()
+        ))
+        .send(&webhook_url, &thread_key)
+        .await?;
+    }
 
     Ok(())
 }
