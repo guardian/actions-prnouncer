@@ -26,8 +26,47 @@ This action automatically sends a message to google chats detailing the list of 
 
 ## Example usage
 
-```
+```yaml
 uses: guardian/google-chats-pr-announcer@v1
   with:
     google-webhook-url: 'https://chats.google.com...'
 ```
+
+## Contributing
+
+### Running Locally
+
+```bash
+# List of repositories to scan
+export GITHUB_REPOSITORIES=guardian/dotcom-rendering,guardian/frontend
+# Token used for accessing github API's, this should be your personal access token
+export GITHUB_TOKEN=<secret!>
+# Webhook URL to send chat messages to, can be generated in the Google Chats application.
+export GOOGLE_WEBHOOK_URL=https://chats.google.com...
+# List of users to ignore when scanning for PR's
+export GITHUB_IGNORED_USERS=dependabot
+# List of labels to ignore when scanning for PR's
+export GITHUB_IGNORED_LABELS=dependencies
+
+cargo run
+```
+
+### Running Locally in VSCode
+
+A VSCode run task has been included for simplicity. You can run the project by following these steps
+
+1.  Press `Ctrl` + `Shift` + `P`
+2.  Search for `Preferences: Open Settings (JSON)`
+3.  Add your secret values to your vscode settings (replace linux with osx/windows as needed)
+
+```json
+{
+  "terminal.integrated.env.linux": {
+    "GITHUB_TOKEN": "Super secret!",
+    "GOOGLE_WEBHOOK_URL": "Also secret!"
+  }
+}
+```
+
+4.  Search for `Tasks: Run Task`
+5.  Select `Run google-chats-pr-announcer`
