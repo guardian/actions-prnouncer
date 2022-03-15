@@ -5,9 +5,7 @@ mod google;
 
 use anyhow::{Context, Error};
 use chrono::Datelike;
-use dotenv::dotenv;
-
-use log::info;
+use log::{info, Level};
 use std::env;
 
 use github::GithubPullRequest;
@@ -106,6 +104,8 @@ async fn scan_repository(
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    simple_logger::init_with_level(Level::Info)?;
+
     let repositories: String =
         env::var("GITHUB_REPOSITORIES").context("GITHUB_REPOSITORIES must be set")?;
     let repositories: Vec<&str> = repositories.split(",").collect();
