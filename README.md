@@ -27,7 +27,7 @@ This action automatically sends a message to google chats detailing the list of 
 ## Example usage
 
 ```yaml
-uses: guardian/google-chats-pr-announcer@v1
+uses: guardian/actions-prnouncer@v1
   with:
     google-webhook-url: 'https://chats.google.com...'
 ```
