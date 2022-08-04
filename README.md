@@ -43,8 +43,9 @@ export GITHUB_REPOSITORIES=guardian/dotcom-rendering,guardian/frontend
 export GITHUB_TOKEN=<secret!>
 # Webhook URL to send chat messages to, can be generated in the Google Chats application.
 export GOOGLE_WEBHOOK_URL=https://chats.google.com...
-# List of users to ignore when scanning for PR's
-export GITHUB_IGNORED_USERS=dependabot
+# List of users to ignore when scanning for PR's, specified by user id.
+# (e.g. 49699333 is dependabot)
+export GITHUB_IGNORED_USERS=49699333
 # List of labels to ignore when scanning for PR's
 export GITHUB_IGNORED_LABELS=dependencies
 
