@@ -131,40 +131,46 @@ async fn main() -> Result<(), Error> {
         );
     }
 
-    let weekday = match chrono::offset::Local::now().date().weekday() {
-        chrono::Weekday::Mon => "Monday",
-        chrono::Weekday::Tue => "Tuesday",
-        chrono::Weekday::Wed => "Wednesday",
-        chrono::Weekday::Thu => "Thursday",
-        chrono::Weekday::Fri => "Friday",
-        chrono::Weekday::Sat => "Saturday",
-        chrono::Weekday::Sun => "Sunday",
-    };
+    if pull_requests_to_review.len() > 0 {
 
-    let mut message = String::new();
+        let weekday = match chrono::offset::Local::now().date().weekday() {
+            chrono::Weekday::Mon => "Monday",
+            chrono::Weekday::Tue => "Tuesday",
+            chrono::Weekday::Wed => "Wednesday",
+            chrono::Weekday::Thu => "Thursday",
+            chrono::Weekday::Fri => "Friday",
+            chrono::Weekday::Sat => "Saturday",
+            chrono::Weekday::Sun => "Sunday",
+        };
 
-    message.push_str(format!("🧵 {} Reviews 🧵\n", weekday).as_str());
-    message.push_str("(PR's can be hidden from this bot by adding the Stale tag)\n");
-    message.push_str("--------------------\n\n");
+        let mut message = String::new();
 
-    let thread_key = format!("pr-thread-{}", chrono::offset::Local::now());
+        message.push_str(format!("🧵 {} Reviews 🧵\n", weekday).as_str());
+        message.push_str("(PR's can be hidden from this bot by adding the Stale tag)\n");
+        message.push_str("--------------------\n\n");
 
-    info!("Using thread key {}", thread_key);
+        let thread_key = format!("pr-thread-{}", chrono::offset::Local::now());
 
-    GoogleChatMessage::from(message)
-        .send(&webhook_url, &thread_key)
-        .await?;
+        info!("Using thread key {}", thread_key);
 
-    for pull_request in pull_requests_to_review {
-        GoogleChatMessage::from(format!(
-            "<{}|{}#{}> - {}\n",
-            pull_request.html_url(),
-            pull_request.head().repo().name(),
-            pull_request.number(),
-            pull_request.title()
-        ))
-        .send(&webhook_url, &thread_key)
-        .await?;
+        GoogleChatMessage::from(message)
+            .send(&webhook_url, &thread_key)
+            .await?;
+
+        for pull_request in pull_requests_to_review {
+            GoogleChatMessage::from(format!(
+                "<{}|{}#{}> - {}\n",
+                pull_request.html_url(),
+                pull_request.head().repo().name(),
+                pull_request.number(),
+                pull_request.title()
+            ))
+            .send(&webhook_url, &thread_key)
+            .await?;
+        }
+    }
+    else {
+    info!("No open PRs found, no action taken.");
     }
 
     Ok(())
