@@ -148,7 +148,8 @@ async fn main() -> Result<(), Error> {
         message.push_str(format!("🧵 {} Reviews 🧵\n", weekday).as_str());
         message.push_str("(PR's can be hidden from this bot by adding the Stale tag)\n");
         message.push_str("--------------------\n\n");
-        message.push_str("This message is brought to you by guardian/actions-prnouncer, configured in guardian/prnouncer-config\n");
+        message.push_str("This message is brought to you by https://github.com/guardian/actions-prnouncer, ");
+        message.push_str("with configuration from https://github.com/guardian/prnouncer-config\n");
         message.push_str("--------------------\n\n");
 
         let thread_key = format!("pr-thread-{}", chrono::offset::Local::now());
