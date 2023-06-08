@@ -131,7 +131,7 @@ async fn main() -> Result<(), Error> {
         );
     }
 
-    if pull_requests_to_review.len() > 0 {
+    if !pull_requests_to_review.is_empty() {
 
         let weekday = match chrono::offset::Local::now().date().weekday() {
             chrono::Weekday::Mon => "Monday",
