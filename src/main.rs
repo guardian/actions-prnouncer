@@ -131,7 +131,7 @@ async fn main() -> Result<(), Error> {
         );
     }
 
-    if pull_requests_to_review.len() > 0 {
+    if !pull_requests_to_review.is_empty() {
 
         let weekday = match chrono::offset::Local::now().date().weekday() {
             chrono::Weekday::Mon => "Monday",
@@ -148,8 +148,8 @@ async fn main() -> Result<(), Error> {
         message.push_str(format!("🧵 {} Reviews 🧵\n", weekday).as_str());
         message.push_str("(PR's can be hidden from this bot by adding the Stale tag)\n");
         message.push_str("--------------------\n");
-        message.push_str("This message is brought to you by <https://github.com/guardian/actions-prnouncer|guardian/actions-prnouncer>, ");
-        message.push_str("with configuration from <https://github.com/guardian/prnouncer-config|guardian/prnouncer-config>\n");
+        message.push_str("This message is brought to you by <github.com/guardian/actions-prnouncer|guardian/actions-prnouncer>, ");
+        message.push_str("with configuration from <github.com/guardian/prnouncer-config|guardian/prnouncer-config>\n");
         message.push_str("--------------------\n\n");
 
         let thread_key = format!("pr-thread-{}", chrono::offset::Local::now());
@@ -163,7 +163,7 @@ async fn main() -> Result<(), Error> {
         for pull_request in pull_requests_to_review {
             GoogleChatMessage::from(format!(
                 "<{}|{}#{}> - {}\n",
-                pull_request.html_url(),
+                pull_request.html_url().replace("https://", ""),
                 pull_request.head().repo().name(),
                 pull_request.number(),
                 pull_request.title()
