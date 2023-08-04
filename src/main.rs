@@ -4,9 +4,10 @@ mod github;
 mod google;
 
 use anyhow::{Context, Error};
-use chrono::Datelike;
+use chrono::{DateTime, Datelike, FixedOffset, Utc};
 use log::{info, Level};
 use std::env;
+use std::fmt::Write;
 
 use github::GithubPullRequest;
 use google::GoogleChatMessage;
@@ -116,6 +117,12 @@ async fn main() -> Result<(), Error> {
     let ignored_users: Vec<&str> = ignored_users.split(",").collect();
     let ignored_labels: String = env::var("GITHUB_IGNORED_LABELS").unwrap_or("".to_string());
     let ignored_labels: Vec<&str> = ignored_labels.split(",").collect();
+    let show_pr_age: String = env::var("SHOW_PR_AGE").unwrap_or("false".to_string());
+    let show_pr_age: bool = match show_pr_age.as_str() {
+        "true" => true,
+        "false" => false,
+        _ => false,
+    };
 
     let mut pull_requests_to_review: Vec<GithubPullRequest> = vec![];
 
@@ -132,7 +139,6 @@ async fn main() -> Result<(), Error> {
     }
 
     if !pull_requests_to_review.is_empty() {
-
         let weekday = match chrono::offset::Local::now().date().weekday() {
             chrono::Weekday::Mon => "Monday",
             chrono::Weekday::Tue => "Tuesday",
@@ -161,20 +167,58 @@ async fn main() -> Result<(), Error> {
             .await?;
 
         for pull_request in pull_requests_to_review {
-            GoogleChatMessage::from(format!(
-                "<{}|{}#{}> - {}\n",
-                pull_request.html_url().replace("https://", ""),
-                pull_request.head().repo().name(),
-                pull_request.number(),
-                pull_request.title()
-            ))
-            .send(&webhook_url, &thread_key)
-            .await?;
+            GoogleChatMessage::from(make_message(pull_request, show_pr_age))
+                .send(&webhook_url, &thread_key)
+                .await?;
         }
-    }
-    else {
-    info!("No open PRs found, no action taken.");
+    } else {
+        info!("No open PRs found, no action taken.");
     }
 
     Ok(())
+}
+
+fn make_message(pull_request: GithubPullRequest, show_pr_age: bool) -> String {
+    let mut message = "".to_string();
+
+    write!(
+        message,
+        "<{}|{}#{}> - {}",
+        pull_request.html_url().replace("https://", ""),
+        pull_request.head().repo().name(),
+        pull_request.number(),
+        pull_request.title()
+    )
+    .unwrap();
+
+    if show_pr_age {
+        let age = get_age(
+            Utc::now().with_timezone(&FixedOffset::east_opt(0).unwrap()),
+            *pull_request.created_at(),
+        )
+        .to_string();
+        write!(message, " - (_{}_)", age).unwrap();
+    }
+
+    write!(message, "\n").unwrap();
+    return message;
+}
+/// Returns a string representing the time between two dates in the format of
+/// "opened {value} {unit} ago".
+///
+/// Example: "opened 1 day ago"
+fn get_age(d1: DateTime<FixedOffset>, d2: DateTime<FixedOffset>) -> String {
+    let difference = d1.signed_duration_since(d2);
+    let mut output = "".to_string();
+    write!(
+        output,
+        "opened {} ago",
+        match difference.num_days() {
+            0 => "less than a day".to_string(),
+            1 => "1 day".to_string(),
+            i => format!("{} days", i),
+        }
+    )
+    .unwrap();
+    return output;
 }

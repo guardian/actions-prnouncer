@@ -20,6 +20,11 @@ inputs:
     description: "Comma delimited list of label names to ignore"
     required: true
     default: "Stale"
+  show-pr-age:
+    description: "Include PR age in chat message output"
+    required: false
+    # Values: "true" or "false"
+    default: "false"
 runs:
   using: "docker"
   image: "Dockerfile"
@@ -29,3 +34,4 @@ runs:
     GITHUB_IGNORED_USERS: ${{ inputs.github-ignored-users }}
     GITHUB_IGNORED_LABELS: ${{ inputs.github-ignored-labels }}
     GOOGLE_WEBHOOK_URL: ${{ inputs.google-webhook-url }}
+    SHOW_PR_AGE: ${{ inputs.show-pr-age }}
