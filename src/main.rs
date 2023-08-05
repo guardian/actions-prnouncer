@@ -4,10 +4,9 @@ mod github;
 mod google;
 
 use anyhow::{Context, Error};
-use chrono::{DateTime, Datelike, FixedOffset, Utc};
+use chrono::{DateTime, Datelike, Utc};
 use log::{info, Level};
 use std::env;
-use std::fmt::Write;
 
 use github::GithubPullRequest;
 use google::GoogleChatMessage;
@@ -117,12 +116,9 @@ async fn main() -> Result<(), Error> {
     let ignored_users: Vec<&str> = ignored_users.split(",").collect();
     let ignored_labels: String = env::var("GITHUB_IGNORED_LABELS").unwrap_or("".to_string());
     let ignored_labels: Vec<&str> = ignored_labels.split(",").collect();
-    let show_pr_age: String = env::var("SHOW_PR_AGE").unwrap_or("false".to_string());
-    let show_pr_age: bool = match show_pr_age.as_str() {
-        "true" => true,
-        "false" => false,
-        _ => false,
-    };
+    let show_pr_age: bool = env::var("SHOW_PR_AGE")
+        .map(|v| v == "true")
+        .unwrap_or(false);
 
     let mut pull_requests_to_review: Vec<GithubPullRequest> = vec![];
 
@@ -179,46 +175,29 @@ async fn main() -> Result<(), Error> {
 }
 
 fn make_message(pull_request: GithubPullRequest, show_pr_age: bool) -> String {
-    let mut message = "".to_string();
-
-    write!(
-        message,
+    let message = format!(
         "<{}|{}#{}> - {}",
         pull_request.html_url().replace("https://", ""),
         pull_request.head().repo().name(),
         pull_request.number(),
         pull_request.title()
-    )
-    .unwrap();
+    );
 
-    if show_pr_age {
-        let age = get_age(
-            Utc::now().with_timezone(&FixedOffset::east_opt(0).unwrap()),
-            *pull_request.created_at(),
-        )
-        .to_string();
-        write!(message, " - (_{}_)", age).unwrap();
-    }
+    let age_output = match show_pr_age {
+        true => format!(" - (_{}_)", get_age(Utc::now(), *pull_request.created_at())),
+        false => "".to_string(),
+    };
 
-    write!(message, "\n").unwrap();
-    return message;
+    format!("{}{}\n", message, age_output)
 }
-/// Returns a string representing the time between two dates in the format of
-/// "opened {value} {unit} ago".
-///
-/// Example: "opened 1 day ago"
-fn get_age(d1: DateTime<FixedOffset>, d2: DateTime<FixedOffset>) -> String {
-    let difference = d1.signed_duration_since(d2);
-    let mut output = "".to_string();
-    write!(
-        output,
+
+fn get_age(d1: DateTime<Utc>, d2: DateTime<Utc>) -> String {
+    format!(
         "opened {} ago",
-        match difference.num_days() {
+        match d1.signed_duration_since(d2).num_days() {
             0 => "less than a day".to_string(),
             1 => "1 day".to_string(),
-            i => format!("{} days", i),
+            n => format!("{} days", n),
         }
     )
-    .unwrap();
-    return output;
 }
