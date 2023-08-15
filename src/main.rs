@@ -192,12 +192,9 @@ fn make_message(pull_request: GithubPullRequest, show_pr_age: bool) -> String {
 }
 
 fn get_age(d1: DateTime<Utc>, d2: DateTime<Utc>) -> String {
-    format!(
-        "opened {} ago",
-        match d1.signed_duration_since(d2).num_days() {
-            0 => "less than a day".to_string(),
-            1 => "1 day".to_string(),
-            n => format!("{} days", n),
-        }
-    )
+    match d1.signed_duration_since(d2).num_days() {
+        0 => "opened less than a day ago".to_string(),
+        1 => "opened 1 day ago".to_string(),
+        n => format!("opened {} days ago", n),
+    }
 }
