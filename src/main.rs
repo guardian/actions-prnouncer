@@ -4,7 +4,7 @@ mod github;
 mod google;
 
 use anyhow::{Context, Error};
-use chrono::Datelike;
+use chrono::{DateTime, Datelike, Utc};
 use log::{info, Level};
 use std::env;
 
@@ -116,6 +116,9 @@ async fn main() -> Result<(), Error> {
     let ignored_users: Vec<&str> = ignored_users.split(",").collect();
     let ignored_labels: String = env::var("GITHUB_IGNORED_LABELS").unwrap_or("".to_string());
     let ignored_labels: Vec<&str> = ignored_labels.split(",").collect();
+    let show_pr_age: bool = env::var("SHOW_PR_AGE")
+        .map(|v| v == "true")
+        .unwrap_or(false);
 
     let mut pull_requests_to_review: Vec<GithubPullRequest> = vec![];
 
@@ -132,7 +135,6 @@ async fn main() -> Result<(), Error> {
     }
 
     if !pull_requests_to_review.is_empty() {
-
         let weekday = match chrono::offset::Local::now().date().weekday() {
             chrono::Weekday::Mon => "Monday",
             chrono::Weekday::Tue => "Tuesday",
@@ -161,20 +163,38 @@ async fn main() -> Result<(), Error> {
             .await?;
 
         for pull_request in pull_requests_to_review {
-            GoogleChatMessage::from(format!(
-                "<{}|{}#{}> - {}\n",
-                pull_request.html_url().replace("https://", ""),
-                pull_request.head().repo().name(),
-                pull_request.number(),
-                pull_request.title()
-            ))
-            .send(&webhook_url, &thread_key)
-            .await?;
+            GoogleChatMessage::from(make_message(pull_request, show_pr_age))
+                .send(&webhook_url, &thread_key)
+                .await?;
         }
-    }
-    else {
-    info!("No open PRs found, no action taken.");
+    } else {
+        info!("No open PRs found, no action taken.");
     }
 
     Ok(())
+}
+
+fn make_message(pull_request: GithubPullRequest, show_pr_age: bool) -> String {
+    let message = format!(
+        "<{}|{}#{}> - {}",
+        pull_request.html_url().replace("https://", ""),
+        pull_request.head().repo().name(),
+        pull_request.number(),
+        pull_request.title()
+    );
+
+    let age_output = match show_pr_age {
+        true => format!(" - (_{}_)", get_age(Utc::now(), *pull_request.created_at())),
+        false => "".to_string(),
+    };
+
+    format!("{}{}\n", message, age_output)
+}
+
+fn get_age(d1: DateTime<Utc>, d2: DateTime<Utc>) -> String {
+    match d1.signed_duration_since(d2).num_days() {
+        0 => "opened less than a day ago".to_string(),
+        1 => "opened 1 day ago".to_string(),
+        n => format!("opened {} days ago", n),
+    }
 }

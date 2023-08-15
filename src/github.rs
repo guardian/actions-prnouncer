@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use chrono::{DateTime, Utc};
 use getset::Getters;
 use serde::Deserialize;
 
@@ -14,6 +15,7 @@ pub struct GithubPullRequest {
     number: i32,
     head: GithubBranch,
     labels: Vec<GithubLabel>,
+    created_at: DateTime<Utc>,
 }
 
 #[derive(Deserialize, Getters, Debug)]
