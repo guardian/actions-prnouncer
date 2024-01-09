@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GoogleChatMessage {
@@ -16,8 +17,11 @@ impl GoogleChatMessage {
         webhook_url: &String,
         thread_key: &String,
     ) -> Result<GoogleChatMessage> {
+        let webhook_url = Url::parse_with_params(webhook_url,
+        &[("messageReplyOption", "REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD")])?;
+
         let response = reqwest::Client::new()
-            .post(webhook_url.replace("{threadKey}", thread_key))
+            .post(webhook_url.as_str().replace("{threadKey}", thread_key))
             .body(serde_json::to_string(&self)?)
             .header("User-Agent", "GU-PR-Bot")
             .send()
