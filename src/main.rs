@@ -79,7 +79,6 @@ async fn scan_repository(
         );
 
         let mut has_approved_reviews = false;
-        let has_reviews_with_outstanding_comments = false;
 
         for pull_request_review in pull_request_reviews {
             info!(
@@ -94,7 +93,7 @@ async fn scan_repository(
             }
         }
 
-        if !has_approved_reviews && !has_reviews_with_outstanding_comments {
+        if !has_approved_reviews {
             pull_requests_to_review.push(pull_request);
         }
     }
