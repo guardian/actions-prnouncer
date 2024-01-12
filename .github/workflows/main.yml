@@ -13,3 +13,5 @@ jobs:
           rust-version: 1.58
       - name: Build
         run: cargo build
+      - name: Test
+        run: cargo test
