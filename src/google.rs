@@ -62,36 +62,24 @@ mod tests {
     #[test]
     fn test_build_threaded_webhook_with_placeholder() {
         let result = GoogleChatMessage::build_webhook_url(&String::from("https://example.com/ABCDEF?threadKey={threadKey}"), &String::from("1234"));
-        match result {
-            Ok(url) => assert_eq!(url, String::from("https://example.com/ABCDEF?messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD&threadKey=1234")),
-            Err(_) => assert!(false),
-        }
+        assert_eq!(Result::unwrap(result), String::from("https://example.com/ABCDEF?messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD&threadKey=1234"))
     }
 
     #[test]
     fn test_build_threaded_webhook_without_placeholder() {
         let result = GoogleChatMessage::build_webhook_url(&String::from("https://example.com/ABCDEF"), &String::from("1234"));
-        match result {
-            Ok(url) => assert_eq!(url, String::from("https://example.com/ABCDEF?messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD&threadKey=1234")),
-            Err(_) => assert!(false),
-        }
+        assert_eq!(Result::unwrap(result), String::from("https://example.com/ABCDEF?messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD&threadKey=1234"))
     }
 
     #[test]
     fn test_preserves_other_existing_params() {
         let result = GoogleChatMessage::build_webhook_url(&String::from("https://example.com/ABCDEF?foo=bar"), &String::from("1234"));
-        match result {
-            Ok(url) => assert_eq!(url, String::from("https://example.com/ABCDEF?foo=bar&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD&threadKey=1234")),
-            Err(_) => assert!(false),
-        }
+        assert_eq!(Result::unwrap(result), String::from("https://example.com/ABCDEF?foo=bar&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD&threadKey=1234"))
     }
 
     #[test]
     fn test_overrides_existing_messagereplyoption_parameter() {
         let result = GoogleChatMessage::build_webhook_url(&String::from("https://example.com/ABCDEF?messageReplyOption=REPLY_MESSAGE"), &String::from("1234"));
-        match result {
-            Ok(url) => assert_eq!(url, String::from("https://example.com/ABCDEF?messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD&threadKey=1234")),
-            Err(_) => assert!(false),
-        }
+        assert_eq!(Result::unwrap(result), String::from("https://example.com/ABCDEF?messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD&threadKey=1234"))
     }
 }
