@@ -16,6 +16,10 @@ inputs:
     description: "Comma delimited list of user ID's to ignore"
     required: true
     default: "49699333"
+  github-included-users:
+    description: "Comma delimited list of user ID's to show"
+    required: false
+    default: ""
   github-ignored-labels:
     description: "Comma delimited list of label names to ignore"
     required: true
@@ -32,6 +36,7 @@ runs:
     GITHUB_REPOSITORIES: ${{ inputs.github-repositories }}
     GITHUB_TOKEN: ${{ inputs.github-token }}
     GITHUB_IGNORED_USERS: ${{ inputs.github-ignored-users }}
+    GITHUB_INCLUDED_USERS: ${{ inputs.github-included-users }}
     GITHUB_IGNORED_LABELS: ${{ inputs.github-ignored-labels }}
     GOOGLE_WEBHOOK_URL: ${{ inputs.google-webhook-url }}
     SHOW_PR_AGE: ${{ inputs.show-pr-age }}
