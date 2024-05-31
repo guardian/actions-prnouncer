@@ -15,7 +15,7 @@ async fn scan_repository(
     repository_name: String,
     github_token: &String,
     ignored_users: &Vec<&str>,
-    alert_users: &Vec<&str>,
+    announced_users: &Vec<&str>,
     ignored_labels: &Vec<&str>,
 ) -> Result<Vec<GithubPullRequest>, Error> {
     info!("Starting PR scan of {}", repository_name);
@@ -52,10 +52,10 @@ async fn scan_repository(
             continue;
         }
 
-        if !alert_users.contains(&pull_request.user().id().to_string().as_str()) {
-            info!("Users to alert: {:?}", alert_users);
+        if !announced_users.contains(&pull_request.user().id().to_string().as_str()) {
+            info!("Users to announce: {:?}", announced_users);
             info!(
-                "Ignoring PR {}({}) as it was raised by a user not included in the alert users list {}({})",
+                "Ignoring PR {}({}) as it was raised by a user not included in the announced users list {}({})",
                 pull_request.id(),
                 pull_request.title(),
                 pull_request.user().id(),
@@ -126,8 +126,8 @@ async fn main() -> Result<(), Error> {
         env::var("GOOGLE_WEBHOOK_URL").context("GOOGLE_WEBHOOK_URL must be set")?;
     let ignored_users: String = env::var("GITHUB_IGNORED_USERS").unwrap_or("".to_string());
     let ignored_users: Vec<&str> = ignored_users.split(",").collect();
-    let alert_users: String = env::var("GITHUB_ALERT_USERS").unwrap_or("".to_string());
-    let alert_users: Vec<&str> = alert_users.split(",").collect();
+    let announced_users: String = env::var("GITHUB_ANNOUNCED_USERS").unwrap_or("".to_string());
+    let announced_users: Vec<&str> = announced_users.split(",").collect();
     let ignored_labels: String = env::var("GITHUB_IGNORED_LABELS").unwrap_or("".to_string());
     let ignored_labels: Vec<&str> = ignored_labels.split(",").collect();
     let show_pr_age: bool = env::var("SHOW_PR_AGE")
@@ -142,7 +142,7 @@ async fn main() -> Result<(), Error> {
                 repository.to_string(),
                 &github_token,
                 &ignored_users,
-                &alert_users,
+                &announced_users,
                 &ignored_labels,
             )
             .await?,
