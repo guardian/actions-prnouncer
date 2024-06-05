@@ -130,7 +130,13 @@ async fn main() -> Result<(), Error> {
     let ignored_users: Vec<&str> = ignored_users.split(",").collect();
     let announced_users: Option<Vec<i32>> = env::var("GITHUB_ANNOUNCED_USERS")
         .ok()
-        .map(|s| s.split(',').map(|id| id.parse().unwrap()).collect());
+        .and_then(|s| {
+            if s.is_empty() {
+                None
+            } else {
+                Some(s.split(',').map(|id| id.parse().unwrap()).collect())
+            }
+        });
     let ignored_labels: String = env::var("GITHUB_IGNORED_LABELS").unwrap_or("".to_string());
     let ignored_labels: Vec<&str> = ignored_labels.split(",").collect();
     let show_pr_age: bool = env::var("SHOW_PR_AGE")
