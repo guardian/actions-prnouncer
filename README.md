@@ -24,6 +24,10 @@ This action automatically sends a message to google chats detailing the list of 
 
 **Required** PR labels to ignore when scanning for PR's. Defaults to `Stale`
 
+## `github-announced-users`
+
+**Optional** Only Github users to announce PR's from. If set, other users' PR's will be ignored.
+
 ## Example usage
 
 ```yaml
@@ -48,6 +52,9 @@ export GOOGLE_WEBHOOK_URL=https://chats.google.com...
 export GITHUB_IGNORED_USERS=49699333
 # List of labels to ignore when scanning for PR's
 export GITHUB_IGNORED_LABELS=dependencies
+# List of users to announce PR's from (if set, other users will be ignored)
+# (e.g. 49699333 is dependabot, 19733683 is snykbot, 108136057 is scala steward)
+export GITHUB_ANNOUNCED_USERS=49699333,19733683,108136057
 
 cargo run
 ```
