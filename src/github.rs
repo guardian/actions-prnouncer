@@ -6,13 +6,13 @@ use serde::Deserialize;
 #[derive(Deserialize, Getters, Debug)]
 #[getset(get = "pub", get_copy = "pub")]
 pub struct GithubPullRequest {
-    id: i32,
+    id: usize,
     url: String,
     html_url: String,
     title: String,
     user: GithubUser,
     draft: bool,
-    number: i32,
+    number: usize,
     head: GithubBranch,
     labels: Vec<GithubLabel>,
     created_at: DateTime<Utc>,
@@ -39,14 +39,14 @@ pub struct GithubLabel {
 #[derive(Deserialize, Getters, Debug)]
 #[getset(get = "pub")]
 pub struct GithubUser {
-    id: i32,
+    id: usize,
     login: String,
 }
 
 #[derive(Deserialize, Getters, Debug)]
 #[getset(get = "pub")]
 pub struct GithubReview {
-    id: i32,
+    id: usize,
     state: String,
 }
 
