@@ -15,7 +15,7 @@ async fn scan_repository(
     repository_name: String,
     github_token: &String,
     ignored_users: &Vec<&str>,
-    announced_users: &Option<Vec<i32>>,
+    announced_users: &Option<Vec<usize>>,
     ignored_labels: &Vec<&str>,
 ) -> Result<Vec<GithubPullRequest>, Error> {
     info!("Starting PR scan of {}", repository_name);
@@ -128,7 +128,7 @@ async fn main() -> Result<(), Error> {
         env::var("GOOGLE_WEBHOOK_URL").context("GOOGLE_WEBHOOK_URL must be set")?;
     let ignored_users: String = env::var("GITHUB_IGNORED_USERS").unwrap_or("".to_string());
     let ignored_users: Vec<&str> = ignored_users.split(",").collect();
-    let announced_users: Option<Vec<i32>> = env::var("GITHUB_ANNOUNCED_USERS")
+    let announced_users: Option<Vec<usize>> = env::var("GITHUB_ANNOUNCED_USERS")
         .ok()
         .and_then(|s| {
             if s.is_empty() {
