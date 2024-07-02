@@ -31,7 +31,7 @@ inputs:
     default: "false"
 runs:
   using: "docker"
-  image: "Dockerfile"
+  image: "docker://gchr.io/guardian/actions-prnouncer"
   env:
     GITHUB_REPOSITORIES: ${{ inputs.github-repositories }}
     GITHUB_TOKEN: ${{ inputs.github-token }}
