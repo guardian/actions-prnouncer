@@ -1,17 +1,34 @@
-name: Build Rust
+name: CI
 
 on: [push, pull_request]
 
 jobs:
-  build:
-    name: Build Rust
+  test:
+    name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: hecrj/setup-rust-action@v1.3.4
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - run: cargo test
+
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - run: cargo fmt --all -- --check
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: clechasseur/rs-clippy-check@80bcfb7d14c9bb0415d025602b7fabcf9463becd # v3.0.4
         with:
-          rust-version: 1.58
-      - name: Build
-        run: cargo build
-      - name: Test
-        run: cargo test
+          args: -- -D warnings
+
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - run: cargo check

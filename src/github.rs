@@ -51,7 +51,7 @@ pub struct GithubReview {
 }
 
 impl GithubPullRequest {
-    pub async fn list(repository: String, token: &str) -> Result<Vec<GithubPullRequest>> {
+    pub async fn list(repository: &str, token: &str) -> Result<Vec<GithubPullRequest>> {
         let api_url = format!(
             "https://api.github.com/repos/{}/pulls?state=open&per_page=100",
             repository

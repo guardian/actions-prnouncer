@@ -12,15 +12,15 @@ use github::GithubPullRequest;
 use google::GoogleChatMessage;
 
 async fn scan_repository(
-    repository_name: String,
-    github_token: &String,
-    ignored_users: &Vec<&str>,
+    repository_name: &str,
+    github_token: &str,
+    ignored_users: &[&str],
     announced_users: &Option<Vec<usize>>,
-    ignored_labels: &Vec<&str>,
+    ignored_labels: &[&str],
 ) -> Result<Vec<GithubPullRequest>, Error> {
     info!("Starting PR scan of {}", repository_name);
 
-    let pull_requests = GithubPullRequest::list(repository_name, &github_token).await?;
+    let pull_requests = GithubPullRequest::list(repository_name, github_token).await?;
     let mut pull_requests_to_review: Vec<GithubPullRequest> = vec![];
 
     info!("Found {} PR's", pull_requests.len());
@@ -53,7 +53,7 @@ async fn scan_repository(
         }
 
         if let Some(announced_users) = announced_users {
-            if !announced_users.contains(&pull_request.user().id()) {
+            if !announced_users.contains(pull_request.user().id()) {
                 info!("Users to announce: {:?}", announced_users);
                 info!(
                     "Ignoring PR {}({}) as it was raised by a user not included in the announced users list {}({})",
@@ -84,7 +84,7 @@ async fn scan_repository(
             continue;
         }
 
-        let pull_request_reviews = pull_request.reviews(&github_token).await?;
+        let pull_request_reviews = pull_request.reviews(github_token).await?;
 
         info!(
             "Found {} reviews for PR {}({})",
@@ -122,15 +122,14 @@ async fn main() -> Result<(), Error> {
 
     let repositories: String =
         env::var("GITHUB_REPOSITORIES").context("GITHUB_REPOSITORIES must be set")?;
-    let repositories: Vec<&str> = repositories.split(",").collect();
+    let repositories: Vec<&str> = repositories.split(',').collect();
     let github_token: String = env::var("GITHUB_TOKEN").context("GITHUB_TOKEN must be set")?;
     let webhook_url: String =
         env::var("GOOGLE_WEBHOOK_URL").context("GOOGLE_WEBHOOK_URL must be set")?;
     let ignored_users: String = env::var("GITHUB_IGNORED_USERS").unwrap_or("".to_string());
-    let ignored_users: Vec<&str> = ignored_users.split(",").collect();
-    let announced_users: Option<Vec<usize>> = env::var("GITHUB_ANNOUNCED_USERS")
-        .ok()
-        .and_then(|s| {
+    let ignored_users: Vec<&str> = ignored_users.split(',').collect();
+    let announced_users: Option<Vec<usize>> =
+        env::var("GITHUB_ANNOUNCED_USERS").ok().and_then(|s| {
             if s.is_empty() {
                 None
             } else {
@@ -138,7 +137,7 @@ async fn main() -> Result<(), Error> {
             }
         });
     let ignored_labels: String = env::var("GITHUB_IGNORED_LABELS").unwrap_or("".to_string());
-    let ignored_labels: Vec<&str> = ignored_labels.split(",").collect();
+    let ignored_labels: Vec<&str> = ignored_labels.split(',').collect();
     let show_pr_age: bool = env::var("SHOW_PR_AGE")
         .map(|v| v == "true")
         .unwrap_or(false);
@@ -148,7 +147,7 @@ async fn main() -> Result<(), Error> {
     for repository in repositories {
         pull_requests_to_review.append(
             &mut scan_repository(
-                repository.to_string(),
+                repository,
                 &github_token,
                 &ignored_users,
                 &announced_users,
