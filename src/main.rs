@@ -14,7 +14,7 @@ use google::GoogleChatMessage;
 async fn scan_repository(
     repository_name: &str,
     github_token: &str,
-    ignored_users: &Vec<&str>,
+    ignored_users: &[&str],
     announced_users: &Option<Vec<usize>>,
     ignored_labels: &[&str],
 ) -> Result<Vec<GithubPullRequest>, Error> {
