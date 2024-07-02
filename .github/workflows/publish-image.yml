@@ -33,7 +33,7 @@ jobs:
         with:
           file: ./Dockerfile
           push: true
-          tags: ghcr.io/guardian/actions-prnouncer:latest
+          tags: ghcr.io/guardian/actions-prnouncer:latest,ghcr.io/guardian/actions-prnouncer:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
