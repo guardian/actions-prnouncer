@@ -1,5 +1,3 @@
-extern crate getset;
-
 mod github;
 mod google;
 
@@ -10,6 +8,8 @@ use std::env;
 
 use github::GithubPullRequest;
 use google::GoogleChatMessage;
+
+const PUBLIC_REPO: &str = "public";
 
 async fn scan_repository(
     repository_name: &str,
@@ -26,56 +26,59 @@ async fn scan_repository(
     info!("Found {} PR's", pull_requests.len());
 
     for pull_request in pull_requests {
-        info!(
-            "Processing PR {}({})",
-            pull_request.id(),
-            pull_request.title()
-        );
+        let is_public = pull_request.head.repo.visibility == PUBLIC_REPO;
 
-        if *pull_request.draft() {
-            info!(
-                "Ignoring PR {}({}) as it is a draft",
-                pull_request.id(),
-                pull_request.title()
-            );
+        info!("Processing PR {}({})", pull_request.id, pull_request.title);
+
+        if pull_request.draft {
+            if is_public {
+                info!(
+                    "Ignoring PR {}({}) as it is a draft",
+                    pull_request.id, pull_request.title
+                );
+            }
             continue;
         }
 
-        if ignored_users.contains(&pull_request.user().id().to_string().as_str()) {
-            info!(
-                "Ignoring PR {}({}) as it was raised by an ignored user {}({})",
-                pull_request.id(),
-                pull_request.title(),
-                pull_request.user().id(),
-                pull_request.user().login()
-            );
+        if ignored_users.contains(&pull_request.user.id.to_string().as_str()) {
+            if is_public {
+                info!(
+                    "Ignoring PR {}({}) as it was raised by an ignored user {}({})",
+                    pull_request.id,
+                    pull_request.title,
+                    pull_request.user.id,
+                    pull_request.user.login
+                );
+            }
             continue;
         }
 
         if let Some(announced_users) = announced_users {
-            if !announced_users.contains(pull_request.user().id()) {
-                info!("Users to announce: {:?}", announced_users);
-                info!(
+            if !announced_users.contains(&pull_request.user.id) {
+                if is_public {
+                    info!("Users to announce: {:?}", announced_users);
+                    info!(
                     "Ignoring PR {}({}) as it was raised by a user not included in the announced users list {}({})",
-                    pull_request.id(),
-                    pull_request.title(),
-                    pull_request.user().id(),
-                    pull_request.user().login()
+                    pull_request.id,
+                    pull_request.title,
+                    pull_request.user.id,
+                    pull_request.user.login
                 );
+                }
                 continue;
             }
         }
 
         let mut has_ignore_label = false;
 
-        for label in pull_request.labels() {
-            if ignored_labels.contains(&label.name().as_str()) {
-                info!(
-                    "Ignoring PR {}({}) as it has an ignored label ({})",
-                    pull_request.id(),
-                    pull_request.title(),
-                    label.name()
-                );
+        for label in &pull_request.labels {
+            if ignored_labels.contains(&label.name.as_str()) {
+                if is_public {
+                    info!(
+                        "Ignoring PR {}({}) as it has an ignored label ({})",
+                        pull_request.id, pull_request.title, label.name
+                    );
+                }
                 has_ignore_label = true;
             }
         }
@@ -86,24 +89,26 @@ async fn scan_repository(
 
         let pull_request_reviews = pull_request.reviews(github_token).await?;
 
-        info!(
-            "Found {} reviews for PR {}({})",
-            pull_request_reviews.len(),
-            pull_request.id(),
-            pull_request.title()
-        );
+        if is_public {
+            info!(
+                "Found {} reviews for PR {}({})",
+                pull_request_reviews.len(),
+                pull_request.id,
+                pull_request.title
+            );
+        }
 
         let mut has_approved_reviews = false;
 
         for pull_request_review in pull_request_reviews {
-            info!(
-                "Processing review {} for PR {}({})",
-                pull_request_review.id(),
-                pull_request.id(),
-                pull_request.title()
-            );
+            if is_public {
+                info!(
+                    "Processing review {} for PR {}({})",
+                    pull_request_review.id, pull_request.id, pull_request.title
+                );
+            }
 
-            if pull_request_review.state() == "APPROVED" {
+            if pull_request_review.state == "APPROVED" {
                 has_approved_reviews = true;
             }
         }
@@ -200,14 +205,14 @@ async fn main() -> Result<(), Error> {
 fn make_message(pull_request: GithubPullRequest, show_pr_age: bool) -> String {
     let message = format!(
         "<{}|{}#{}> - {}",
-        pull_request.html_url().replace("https://", ""),
-        pull_request.head().repo().name(),
-        pull_request.number(),
-        pull_request.title()
+        pull_request.html_url.replace("https://", ""),
+        pull_request.head.repo.name,
+        pull_request.number,
+        pull_request.title
     );
 
     let age_output = match show_pr_age {
-        true => format!(" - (_{}_)", get_age(Utc::now(), *pull_request.created_at())),
+        true => format!(" - (_{}_)", get_age(Utc::now(), pull_request.created_at)),
         false => "".to_string(),
     };
 
