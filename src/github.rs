@@ -1,53 +1,47 @@
 use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
-use getset::Getters;
 use serde::Deserialize;
 
-#[derive(Deserialize, Getters, Debug)]
-#[getset(get = "pub", get_copy = "pub")]
+#[derive(Deserialize, Debug)]
 pub struct GithubPullRequest {
-    id: usize,
-    url: String,
-    html_url: String,
-    title: String,
-    user: GithubUser,
-    draft: bool,
-    number: usize,
-    head: GithubBranch,
-    labels: Vec<GithubLabel>,
-    created_at: DateTime<Utc>,
+    pub id: usize,
+    pub url: String,
+    pub html_url: String,
+    pub title: String,
+    pub user: GithubUser,
+    pub draft: bool,
+    pub number: usize,
+    pub head: GithubBranch,
+    pub labels: Vec<GithubLabel>,
+    pub created_at: DateTime<Utc>,
 }
 
-#[derive(Deserialize, Getters, Debug)]
-#[getset(get = "pub", get_copy = "pub")]
+#[derive(Deserialize, Debug)]
 pub struct GithubBranch {
-    repo: GithubRepository,
+    pub repo: GithubRepository,
 }
 
-#[derive(Deserialize, Getters, Debug)]
-#[getset(get = "pub", get_copy = "pub")]
+#[derive(Deserialize, Debug)]
 pub struct GithubRepository {
-    name: String,
+    pub name: String,
+    pub visibility: String,
 }
 
-#[derive(Deserialize, Getters, Debug)]
-#[getset(get = "pub", get_copy = "pub")]
+#[derive(Deserialize, Debug)]
 pub struct GithubLabel {
-    name: String,
+    pub name: String,
 }
 
-#[derive(Deserialize, Getters, Debug)]
-#[getset(get = "pub")]
+#[derive(Deserialize, Debug)]
 pub struct GithubUser {
-    id: usize,
-    login: String,
+    pub id: usize,
+    pub login: String,
 }
 
-#[derive(Deserialize, Getters, Debug)]
-#[getset(get = "pub")]
+#[derive(Deserialize, Debug)]
 pub struct GithubReview {
-    id: usize,
-    state: String,
+    pub id: usize,
+    pub state: String,
 }
 
 impl GithubPullRequest {
@@ -74,7 +68,7 @@ impl GithubPullRequest {
     }
 
     pub async fn reviews(&self, token: &str) -> Result<Vec<GithubReview>> {
-        let api_url = format!("{}/reviews", self.url());
+        let api_url = format!("{}/reviews", self.url);
 
         let response = reqwest::Client::new()
             .get(&api_url)
