@@ -18,7 +18,7 @@ async fn scan_repository(
     announced_users: &Option<Vec<usize>>,
     ignored_labels: &[&str],
 ) -> Result<Vec<GithubPullRequest>, Error> {
-    info!("Starting PR scan of {}", repository_name);
+    info!("\nStarting PR scan of {}", repository_name);
 
     let pull_requests = GithubPullRequest::list(repository_name, github_token).await?;
     let mut pull_requests_to_review: Vec<GithubPullRequest> = vec![];
@@ -28,7 +28,9 @@ async fn scan_repository(
     for pull_request in pull_requests {
         let is_public = pull_request.head.repo.visibility == PUBLIC_REPO;
 
-        info!("Processing PR {}({})", pull_request.id, pull_request.title);
+        if is_public {
+            info!("Processing PR {}({})", pull_request.id, pull_request.title);
+        }
 
         if pull_request.draft {
             if is_public {
