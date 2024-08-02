@@ -24,6 +24,10 @@ inputs:
     description: "Comma delimited list of label names to ignore"
     required: true
     default: "Stale"
+  github-maintenance-ignored-users:
+    description: "Comma delimited list of user ID's to ignore on repos tagged as maintenance"
+    required: true
+    default: "49699333"
   show-pr-age:
     description: "Include PR age in chat message output"
     required: false
@@ -38,5 +42,6 @@ runs:
     GITHUB_IGNORED_USERS: ${{ inputs.github-ignored-users }}
     GITHUB_ANNOUNCED_USERS: ${{ inputs.github-announced-users }}
     GITHUB_IGNORED_LABELS: ${{ inputs.github-ignored-labels }}
+    GITHUB_MAINTENANCE_IGNORED_USERS: ${{ inputs.github-maintenance-ignored-users }}
     GOOGLE_WEBHOOK_URL: ${{ inputs.google-webhook-url }}
     SHOW_PR_AGE: ${{ inputs.show-pr-age }}

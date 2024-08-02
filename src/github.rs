@@ -25,6 +25,7 @@ pub struct GithubBranch {
 pub struct GithubRepository {
     pub name: String,
     pub visibility: String,
+    pub topics: Vec<String>,
 }
 
 #[derive(Deserialize, Debug)]

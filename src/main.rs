@@ -17,6 +17,7 @@ async fn scan_repository(
     ignored_users: &[&str],
     announced_users: &Option<Vec<usize>>,
     ignored_labels: &[&str],
+    ignored_maintenance_users: &[&str],
 ) -> Result<Vec<GithubPullRequest>, Error> {
     info!("\nStarting PR scan of {}", repository_name);
 
@@ -29,7 +30,10 @@ async fn scan_repository(
         let is_public = pull_request.head.repo.visibility == PUBLIC_REPO;
 
         if is_public {
-            info!("Processing PR {}({})", pull_request.id, pull_request.title);
+            info!(
+                "Processing PR {}({}) by {}",
+                pull_request.id, pull_request.title, pull_request.user.id
+            );
         }
 
         if pull_request.draft {
@@ -46,6 +50,25 @@ async fn scan_repository(
             if is_public {
                 info!(
                     "Ignoring PR {}({}) as it was raised by an ignored user {}({})",
+                    pull_request.id,
+                    pull_request.title,
+                    pull_request.user.id,
+                    pull_request.user.login
+                );
+            }
+            continue;
+        }
+
+        if pull_request
+            .head
+            .repo
+            .topics
+            .contains(&"maintenance".to_string())
+            && ignored_maintenance_users.contains(&pull_request.user.id.to_string().as_str())
+        {
+            if is_public {
+                info!(
+                    "Ignoring PR {}({}) as it was raised by a user {}({}) which is ignored in maintenance mode",
                     pull_request.id,
                     pull_request.title,
                     pull_request.user.id,
@@ -145,6 +168,9 @@ async fn main() -> Result<(), Error> {
         });
     let ignored_labels: String = env::var("GITHUB_IGNORED_LABELS").unwrap_or("".to_string());
     let ignored_labels: Vec<&str> = ignored_labels.split(',').collect();
+    let ignored_maintenance_users: String =
+        env::var("GITHUB_IGNORED_MAINTENANCE_USERS").unwrap_or("".to_string());
+    let ignored_maintenance_users: Vec<&str> = ignored_maintenance_users.split(',').collect();
     let show_pr_age: bool = env::var("SHOW_PR_AGE")
         .map(|v| v == "true")
         .unwrap_or(false);
@@ -159,6 +185,7 @@ async fn main() -> Result<(), Error> {
                 &ignored_users,
                 &announced_users,
                 &ignored_labels,
+                &ignored_maintenance_users,
             )
             .await?,
         );
