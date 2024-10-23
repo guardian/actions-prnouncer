@@ -205,9 +205,10 @@ async fn main() -> Result<(), Error> {
 }
 
 fn make_message(pull_request: GithubPullRequest, show_pr_age: bool) -> String {
-    let prefix = match pull_request.user.login.contains("[bot]") {
-        true => "🤖🤖🤖 ".to_string(),
-        false => "".to_string(),
+    let prefix = if pull_request.user.login.contains("[bot]") {
+        "🤖🤖🤖 ".to_string()
+    } else {
+        "".to_string()
     };
 
     let message = format!(
@@ -219,9 +220,10 @@ fn make_message(pull_request: GithubPullRequest, show_pr_age: bool) -> String {
         pull_request.title
     );
 
-    let age_output = match show_pr_age {
-        true => format!(" - (_{}_)", get_age(Utc::now(), pull_request.created_at)),
-        false => "".to_string(),
+    let age_output = if show_pr_age {
+        format!(" - (_{}_)", get_age(Utc::now(), pull_request.created_at))
+    } else {
+        "".to_string()
     };
 
     format!(
