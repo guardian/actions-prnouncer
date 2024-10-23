@@ -36,6 +36,7 @@ pub struct GithubLabel {
 pub struct GithubUser {
     pub id: usize,
     pub login: String,
+    pub r#type: String,
 }
 
 #[derive(Deserialize, Debug)]
