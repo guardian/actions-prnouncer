@@ -219,15 +219,11 @@ fn make_message(pull_request: GithubPullRequest, show_pr_age: bool) -> String {
         "".to_string()
     };
 
-    let user = format!(
-        "{} {}",
-        if pull_request.user.login.contains("[bot]") {
-            "🤖"
-        } else {
-            "👤"
-        },
-        pull_request.user.login
-    );
+    let user = if pull_request.user.login.contains("[bot]") {
+        format!("🤖 {}", pull_request.user.login)
+    } else {
+        format!("👤 {}", pull_request.user.login)
+    };
 
     format!("{}{} \n\n{}\n", message, age_output, user)
 }
