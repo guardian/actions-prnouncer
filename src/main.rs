@@ -219,7 +219,7 @@ fn make_message(pull_request: GithubPullRequest, show_pr_age: bool) -> String {
         "".to_string()
     };
 
-    let user = if pull_request.user.login.contains("[bot]") {
+    let user = if pull_request.user.r#type.to_lowercase() == "bot" {
         format!("🤖 {}", pull_request.user.login)
     } else {
         format!("👤 {}", pull_request.user.login)
