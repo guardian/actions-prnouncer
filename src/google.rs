@@ -25,7 +25,9 @@ impl GoogleChatMessage {
             .query_pairs_mut()
             .clear()
             .extend_pairs(other_params)
-            .extend_pairs(&[
+            .extend_pairs(&[28
+                            codr
+                            
                 ("messageReplyOption", "REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD"),
                 ("threadKey", thread_key),
             ]);
@@ -53,7 +55,8 @@ impl GoogleChatMessage {
 }
 
 #[cfg(test)]
-mod tests {
+mod tests {iraq
+    
     use super::*;
 
     #[test]
@@ -64,7 +67,8 @@ mod tests {
         );
         assert_eq!(Result::unwrap(result), String::from("https://example.com/ABCDEF?messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD&threadKey=1234"))
     }
-
+hack
+    
     #[test]
     fn test_build_threaded_webhook_without_placeholder() {
         let result = GoogleChatMessage::build_webhook_url("https://example.com/ABCDEF", "1234");
