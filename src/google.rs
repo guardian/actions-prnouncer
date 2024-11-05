@@ -1,5 +1,7 @@
 use anyhow::{Context, Result};
+use log::info;
 use serde::{Deserialize, Serialize};
+use std::time;
 use url::Url;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -40,15 +42,33 @@ impl GoogleChatMessage {
             .body(serde_json::to_string(&self)?)
             .header("User-Agent", "GU-PR-Bot")
             .send()
-            .await?
-            .text()
-            .await
-            .context(format!("Failed to get response from: {}", &webhook_url))?;
+            .await?;
 
-        serde_json::from_str(&response).context(format!(
-            "Failed to parse JSON when querying {}: {}",
-            &webhook_url, response
-        ))
+        if response
+            .status()
+            .eq(&reqwest::StatusCode::TOO_MANY_REQUESTS)
+        {
+            /*
+            Sleep for 1.5 seconds to avoid rate limiting, at 60 requests per minute.
+            See https://developers.google.com/workspace/chat/limits
+            */
+            info!(
+                "Received {} response. Sleeping for 1.5 seconds before retrying",
+                response.status()
+            );
+            tokio::time::sleep(time::Duration::from_millis(1500)).await;
+            Box::pin(self.send(webhook_url, thread_key)).await
+        } else {
+            let response_text = response
+                .text()
+                .await
+                .context(format!("Failed to get response from: {}", &webhook_url))?;
+
+            serde_json::from_str(&response_text).context(format!(
+                "Failed to parse JSON when querying {}: {}",
+                &webhook_url, response_text
+            ))
+        }
     }
 }
 

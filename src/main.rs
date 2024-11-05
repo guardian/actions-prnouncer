@@ -193,6 +193,10 @@ async fn main() -> Result<(), Error> {
             .await?;
 
         for pull_request in pull_requests_to_review {
+            info!(
+                "Sending message for PR {} #{}",
+                pull_request.head.repo.name, pull_request.number
+            );
             GoogleChatMessage::from(make_message(pull_request, show_pr_age))
                 .send(&webhook_url, &thread_key)
                 .await?;
