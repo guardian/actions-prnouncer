@@ -34,7 +34,13 @@ impl GoogleChatMessage {
         Ok(updated_url.as_str().to_string())
     }
 
-    pub async fn send(self, webhook_url: &str, thread_key: &str) -> Result<GoogleChatMessage> {
+    pub async fn send(
+        self,
+        webhook_url: &str,
+        thread_key: &str,
+        attempt: i32,
+    ) -> Result<GoogleChatMessage> {
+        let max_attempts = 3;
         let url = GoogleChatMessage::build_webhook_url(webhook_url, thread_key)?;
 
         let response = reqwest::Client::new()
@@ -47,22 +53,24 @@ impl GoogleChatMessage {
         if response
             .status()
             .eq(&reqwest::StatusCode::TOO_MANY_REQUESTS)
+            && attempt < max_attempts
         {
             /*
             Sleep for 1.5 seconds to avoid rate limiting, at 60 requests per minute.
             See https://developers.google.com/workspace/chat/limits
             */
             info!(
-                "Received {} response. Sleeping for 1.5 seconds before retrying",
-                response.status()
+                "Received {} response. Sleeping for 1.5 seconds before retrying (attempt {})",
+                response.status(),
+                attempt
             );
             tokio::time::sleep(time::Duration::from_millis(1500)).await;
-            Box::pin(self.send(webhook_url, thread_key)).await
+            Box::pin(self.send(webhook_url, thread_key, attempt + 1)).await
         } else {
-            let response_text = response
-                .text()
-                .await
-                .context(format!("Failed to get response from: {}", &webhook_url))?;
+            let response_text = response.text().await.context(format!(
+                "Failed to get response from: {} after {} attempts",
+                &webhook_url, attempt
+            ))?;
 
             serde_json::from_str(&response_text).context(format!(
                 "Failed to parse JSON when querying {}: {}",
