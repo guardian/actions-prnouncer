@@ -189,12 +189,16 @@ async fn main() -> Result<(), Error> {
         info!("Using thread key {}", thread_key);
 
         GoogleChatMessage::from(message)
-            .send(&webhook_url, &thread_key)
+            .send(&webhook_url, &thread_key, 0)
             .await?;
 
         for pull_request in pull_requests_to_review {
+            info!(
+                "Sending message for PR {} #{}",
+                pull_request.head.repo.name, pull_request.number
+            );
             GoogleChatMessage::from(make_message(pull_request, show_pr_age))
-                .send(&webhook_url, &thread_key)
+                .send(&webhook_url, &thread_key, 0)
                 .await?;
         }
     } else {
