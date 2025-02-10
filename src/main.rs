@@ -178,7 +178,7 @@ async fn main() -> Result<(), Error> {
         let mut message = String::new();
 
         message.push_str(format!("🧵 {} Reviews 🧵\n", weekday).as_str());
-        message.push_str("(PR's can be hidden from this bot by adding the Stale tag)\n");
+        message.push_str("(PRs can be hidden from this bot by adding the Stale tag)\n");
         message.push_str("--------------------\n");
         message.push_str("This message is brought to you by <github.com/guardian/actions-prnouncer|guardian/actions-prnouncer>, ");
         message.push_str("with configuration from <github.com/guardian/prnouncer-config|guardian/prnouncer-config>\n");
