@@ -14,6 +14,8 @@ pub struct GithubPullRequest {
     pub head: GithubBranch,
     pub labels: Vec<GithubLabel>,
     pub created_at: DateTime<Utc>,
+    pub additions: u32,
+    pub deletions: u32,
 }
 
 #[derive(Deserialize, Debug)]
