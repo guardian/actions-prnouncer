@@ -45,7 +45,6 @@ pub struct GithubReview {
     pub state: String,
 }
 
-
 impl GithubPullRequest {
     pub async fn list(repository: &str, token: &str) -> Result<Vec<GithubPullRequest>> {
         let api_url = format!(
@@ -89,11 +88,11 @@ impl GithubPullRequest {
     }
 }
 
-  impl GithubUser {
+impl GithubUser {
     pub async fn list(team_id: &str, token: &str) -> Result<Vec<GithubUser>> {
         let api_url = format!(
-            "https://api.github.com/orgs/guardian/teams/{}/members"
-            , team_id
+            "https://api.github.com/orgs/guardian/teams/{}/members",
+            team_id
         );
 
         let response = reqwest::Client::new()
@@ -110,5 +109,5 @@ impl GithubPullRequest {
             "Failed to parse JSON when querying {}: {}",
             &api_url, response
         ))
-  }
+    }
 }
