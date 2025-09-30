@@ -17,6 +17,7 @@ async fn scan_repository(
     ignored_users: &[&str],
     announced_users: &Option<Vec<usize>>,
     ignored_labels: &[&str],
+    allow_approved_prs: bool,
 ) -> Result<Vec<GithubPullRequest>, Error> {
     info!("\nStarting PR scan of {}", repository_name);
 
@@ -115,7 +116,7 @@ async fn scan_repository(
             }
         }
 
-        if !has_approved_reviews {
+        if !has_approved_reviews||allow_approved_prs{
             pull_requests_to_review.push(pull_request);
         }
     }
@@ -148,6 +149,9 @@ async fn main() -> Result<(), Error> {
     let show_pr_age: bool = env::var("SHOW_PR_AGE")
         .map(|v| v == "true")
         .unwrap_or(false);
+    let allow_approved_prs: bool = env::var("GITHUB_ALLOW_APPROVED")
+        .map(|v| v == "true")
+        .unwrap_or(false);
 
     let mut pull_requests_to_review: Vec<GithubPullRequest> = vec![];
 
@@ -159,6 +163,7 @@ async fn main() -> Result<(), Error> {
                 &ignored_users,
                 &announced_users,
                 &ignored_labels,
+                allow_approved_prs,
             )
             .await?,
         );
