@@ -59,34 +59,34 @@ async fn scan_repository(
         }
 
         let announced_users: Vec<usize> = if !announced_team.is_empty() {
-                // Fallback to calling GitHub when team is provided
-                match GithubUser::list(announced_team, github_token).await {
-                    Ok(users) => users.iter().map(|u| u.id).collect(),
-                    Err(e) => {
-                        eprintln!("Error: {:?}", e);
-                        Vec::new()
-                    }
-                }} else if let Some(announced_users) = announced_users {
-                // Use the env-provided list
-                announced_users.clone()
-            } else {
-                // Nothing provided
-                Vec::new()
-          };
-
+            // Fallback to calling GitHub when team is provided
+            match GithubUser::list(announced_team, github_token).await {
+                Ok(users) => users.iter().map(|u| u.id).collect(),
+                Err(e) => {
+                    eprintln!("Error: {:?}", e);
+                    Vec::new()
+                }
+            }
+        } else if let Some(announced_users) = announced_users {
+            // Use the env-provided list
+            announced_users.clone()
+        } else {
+            // Nothing provided
+            Vec::new()
+        };
 
         if !announced_users.contains(&pull_request.user.id) {
-                if is_public {
-                    info!("Users to announce: {:?}", announced_users);
-                    info!(
-                    "Ignoring PR {}({}) as it was raised by a user not included in the announced users list {}({})",
-                    pull_request.id,
-                    pull_request.title,
-                    pull_request.user.id,
-                    pull_request.user.login
-                );
-                }
-                continue;
+            if is_public {
+                info!("Users to announce: {:?}", announced_users);
+                info!(
+                "Ignoring PR {}({}) as it was raised by a user not included in the announced users list {}({})",
+                pull_request.id,
+                pull_request.title,
+                pull_request.user.id,
+                pull_request.user.login
+            );
+            }
+            continue;
         }
 
         let mut has_ignore_label = false;
@@ -133,7 +133,7 @@ async fn scan_repository(
             }
         }
 
-        if !has_approved_reviews||allow_approved_prs{
+        if !has_approved_reviews || allow_approved_prs {
             pull_requests_to_review.push(pull_request);
         }
     }
@@ -179,7 +179,7 @@ async fn main() -> Result<(), Error> {
                 repository,
                 &github_token,
                 &ignored_users,
-                &announced_team, 
+                &announced_team,
                 &announced_users,
                 &ignored_labels,
                 allow_approved_prs,
