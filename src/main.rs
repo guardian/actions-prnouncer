@@ -7,6 +7,7 @@ use log::{info, Level};
 use std::env;
 
 use github::GithubPullRequest;
+use github::GithubUser;
 use google::GoogleChatMessage;
 
 const PUBLIC_REPO: &str = "public";
@@ -15,6 +16,7 @@ async fn scan_repository(
     repository_name: &str,
     github_token: &str,
     ignored_users: &[&str],
+    announced_team: &str,
     announced_users: &Option<Vec<usize>>,
     ignored_labels: &[&str],
     allow_approved_prs: bool,
@@ -56,8 +58,24 @@ async fn scan_repository(
             continue;
         }
 
-        if let Some(announced_users) = announced_users {
-            if !announced_users.contains(&pull_request.user.id) {
+        let announced_users: Vec<usize> = if !announced_team.is_empty() {
+                // Fallback to calling GitHub when team is provided
+                match GithubUser::list(announced_team, github_token).await {
+                    Ok(users) => users.iter().map(|u| u.id).collect(),
+                    Err(e) => {
+                        eprintln!("Error: {:?}", e);
+                        Vec::new()
+                    }
+                }} else if let Some(announced_users) = announced_users {
+                // Use the env-provided list
+                announced_users.clone()
+            } else {
+                // Nothing provided
+                Vec::new()
+          };
+
+
+        if !announced_users.contains(&pull_request.user.id) {
                 if is_public {
                     info!("Users to announce: {:?}", announced_users);
                     info!(
@@ -69,7 +87,6 @@ async fn scan_repository(
                 );
                 }
                 continue;
-            }
         }
 
         let mut has_ignore_label = false;
@@ -136,6 +153,7 @@ async fn main() -> Result<(), Error> {
         env::var("GOOGLE_WEBHOOK_URL").context("GOOGLE_WEBHOOK_URL must be set")?;
     let ignored_users: String = env::var("GITHUB_IGNORED_USERS").unwrap_or("".to_string());
     let ignored_users: Vec<&str> = ignored_users.split(',').collect();
+    let announced_team: String = env::var("GITHUB_ANNOUNCED_TEAM").unwrap_or("".to_string());
     let announced_users: Option<Vec<usize>> =
         env::var("GITHUB_ANNOUNCED_USERS").ok().and_then(|s| {
             if s.is_empty() {
@@ -161,6 +179,7 @@ async fn main() -> Result<(), Error> {
                 repository,
                 &github_token,
                 &ignored_users,
+                &announced_team, 
                 &announced_users,
                 &ignored_labels,
                 allow_approved_prs,
