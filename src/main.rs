@@ -28,6 +28,28 @@ async fn scan_repository(
 
     info!("Found {} PR's", pull_requests.len());
 
+
+    let announced_users: Vec<usize> = if !announced_team.is_empty() {
+        // Fallback to calling GitHub when team is provided
+        match GithubUser::list(announced_team, github_token).await {
+            Ok(users) => users.iter().map(|u| u.id).collect(),
+            Err(e) => {
+                if let Some(announced_users) = announced_users {
+                    announced_users.clone()
+                } else {
+                    return Err(e);
+                }
+            }
+        }
+    } else if let Some(announced_users) = announced_users {
+        // Use the env-provided list
+        announced_users.clone()
+    } else {
+        // Nothing provided
+        Vec::new()
+    };
+
+
     for pull_request in pull_requests {
         let is_public = pull_request.head.repo.visibility == PUBLIC_REPO;
 
