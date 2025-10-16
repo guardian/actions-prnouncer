@@ -64,7 +64,11 @@ async fn scan_repository(
                 Ok(users) => users.iter().map(|u| u.id).collect(),
                 Err(e) => {
                     eprintln!("Error: {:?}", e);
-                    Vec::new()
+                    if let Some(announced_users) = announced_users {
+                        announced_users.clone()
+                    } else {
+                        return Err(e.into());
+                    }
                 }
             }
         } else if let Some(announced_users) = announced_users {
