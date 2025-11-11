@@ -40,7 +40,8 @@ impl GoogleChatMessage {
         thread_key: &str,
         attempt: i32,
     ) -> Result<GoogleChatMessage> {
-        let max_attempts = 3;
+        let max_attempts = 10;
+        let sleep_interval_ms = 2000;
         let url = GoogleChatMessage::build_webhook_url(webhook_url, thread_key)?;
 
         let response = reqwest::Client::new()
@@ -56,15 +57,16 @@ impl GoogleChatMessage {
             && attempt < max_attempts
         {
             /*
-            Sleep for 1.5 seconds to avoid rate limiting, at 60 requests per minute.
+            Sleep to avoid rate limiting, at 60 requests per minute.
             See https://developers.google.com/workspace/chat/limits
             */
             info!(
-                "Received {} response. Sleeping for 1.5 seconds before retrying (attempt {})",
+                "Received {} response. Sleeping for {}ms before retrying (attempt {})",
                 response.status(),
+                sleep_interval_ms,
                 attempt
             );
-            tokio::time::sleep(time::Duration::from_millis(1500)).await;
+            tokio::time::sleep(time::Duration::from_millis(sleep_interval_ms)).await;
             Box::pin(self.send(webhook_url, thread_key, attempt + 1)).await
         } else {
             let response_text = response.text().await.context(format!(
