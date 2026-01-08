@@ -28,27 +28,23 @@ async fn scan_repository(
 
     info!("Found {} PR's", pull_requests.len());
 
-
-let user_list: Vec<usize> = if !announced_team.is_empty() {
-    info!(
-        "Getting team members for team {} ",
-        announced_team 
-    );
-    match GithubUser::list(announced_team, github_token).await {
-        Ok(users) => users.iter().map(|u| u.id).collect(),
-              Err(e) => {
-                  if let Some(announced_users) = announced_users {
-                      announced_users.clone()
-                  } else {
-                      return Err(e);
-                  }
-              }
-          }
-      } else if let Some(announced_users) = announced_users {
-          announced_users.clone()
-      } else {
-          Vec::new()
-      };
+    let user_list: Vec<usize> = if !announced_team.is_empty() {
+        info!("Getting team members for team {} ", announced_team);
+        match GithubUser::list(announced_team, github_token).await {
+            Ok(users) => users.iter().map(|u| u.id).collect(),
+            Err(e) => {
+                if let Some(announced_users) = announced_users {
+                    announced_users.clone()
+                } else {
+                    return Err(e);
+                }
+            }
+        }
+    } else if let Some(announced_users) = announced_users {
+        announced_users.clone()
+    } else {
+        Vec::new()
+    };
 
     for pull_request in pull_requests {
         let is_public = pull_request.head.repo.visibility == PUBLIC_REPO;
@@ -80,7 +76,8 @@ let user_list: Vec<usize> = if !announced_team.is_empty() {
             continue;
         }
 
-        let users = &user_list; {
+        let users = &user_list;
+        {
             if !users.contains(&pull_request.user.id) {
                 if is_public {
                     info!("Users to announce: {:?}", announced_users);
@@ -91,9 +88,9 @@ let user_list: Vec<usize> = if !announced_team.is_empty() {
                     pull_request.user.id,
                     pull_request.user.login
                 );
-              }
-              continue;
-           }
+                }
+                continue;
+            }
         }
 
         let mut has_ignore_label = false;
