@@ -28,6 +28,28 @@ async fn scan_repository(
 
     info!("Found {} PR's", pull_requests.len());
 
+
+let user_list: Vec<usize> = if !announced_team.is_empty() {
+    info!(
+        "Getting team members for team {} ",
+        announced_team 
+    );
+    match GithubUser::list(announced_team, github_token).await {
+        Ok(users) => users.iter().map(|u| u.id).collect(),
+              Err(e) => {
+                  if let Some(announced_users) = announced_users {
+                      announced_users.clone()
+                  } else {
+                      return Err(e);
+                  }
+              }
+          }
+      } else if let Some(announced_users) = announced_users {
+          announced_users.clone()
+      } else {
+          Vec::new()
+      };
+
     for pull_request in pull_requests {
         let is_public = pull_request.head.repo.visibility == PUBLIC_REPO;
 
@@ -58,39 +80,20 @@ async fn scan_repository(
             continue;
         }
 
-        let announced_users: Vec<usize> = if !announced_team.is_empty() {
-            // Fallback to calling GitHub when team is provided
-            match GithubUser::list(announced_team, github_token).await {
-                Ok(users) => users.iter().map(|u| u.id).collect(),
-                Err(e) => {
-                    eprintln!("Error: {:?}", e);
-                    if let Some(announced_users) = announced_users {
-                        announced_users.clone()
-                    } else {
-                        return Err(e.into());
-                    }
-                }
-            }
-        } else if let Some(announced_users) = announced_users {
-            // Use the env-provided list
-            announced_users.clone()
-        } else {
-            // Nothing provided
-            Vec::new()
-        };
-
-        if !announced_users.contains(&pull_request.user.id) {
-            if is_public {
-                info!("Users to announce: {:?}", announced_users);
-                info!(
-                "Ignoring PR {}({}) as it was raised by a user not included in the announced users list {}({})",
-                pull_request.id,
-                pull_request.title,
-                pull_request.user.id,
-                pull_request.user.login
-            );
-            }
-            continue;
+        let users = &user_list; {
+            if !users.contains(&pull_request.user.id) {
+                if is_public {
+                    info!("Users to announce: {:?}", announced_users);
+                    info!(
+                    "Ignoring PR {}({}) as it was raised by a user not included in the announced users list {}({})",
+                    pull_request.id,
+                    pull_request.title,
+                    pull_request.user.id,
+                    pull_request.user.login
+                );
+              }
+              continue;
+           }
         }
 
         let mut has_ignore_label = false;
