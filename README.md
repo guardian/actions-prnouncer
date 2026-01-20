@@ -24,17 +24,9 @@ This action automatically sends a message to google chats detailing the list of 
 
 **Required** PR labels to ignore when scanning for PR's. Defaults to `Stale`
 
-## `github-announced-team`
-
-**Optional** If provided PR's will be included from all members of that specific team.
-
 ## `github-announced-users`
 
 **Optional** Only Github users to announce PR's from. If set, other users' PR's will be ignored.
-
-## `github-allow-approved`
-
-**Optional** If provided then approved but unmerged PRs will also be included by the bot.
 
 ## Example usage
 
