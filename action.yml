@@ -36,9 +36,7 @@ runs:
     GITHUB_REPOSITORIES: ${{ inputs.github-repositories }}
     GITHUB_TOKEN: ${{ inputs.github-token }}
     GITHUB_IGNORED_USERS: ${{ inputs.github-ignored-users }}
-    GITHUB_ANNOUNCED_TEAM: ${{ inputs.github-announced-team }}
     GITHUB_ANNOUNCED_USERS: ${{ inputs.github-announced-users }}
     GITHUB_IGNORED_LABELS: ${{ inputs.github-ignored-labels }}
-    GITHUB_ALLOW_APPROVED: ${{ inputs.github-allow-approved }}
     GOOGLE_WEBHOOK_URL: ${{ inputs.google-webhook-url }}
     SHOW_PR_AGE: ${{ inputs.show-pr-age }}
