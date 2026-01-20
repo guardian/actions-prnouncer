@@ -7,6 +7,7 @@ use log::{info, Level};
 use std::env;
 
 use github::GithubPullRequest;
+use github::GithubUser;
 use google::GoogleChatMessage;
 
 const PUBLIC_REPO: &str = "public";
@@ -15,8 +16,10 @@ async fn scan_repository(
     repository_name: &str,
     github_token: &str,
     ignored_users: &[&str],
+    announced_team: &str,
     announced_users: &Option<Vec<usize>>,
     ignored_labels: &[&str],
+    allow_approved_prs: bool,
 ) -> Result<Vec<GithubPullRequest>, Error> {
     info!("\nStarting PR scan of {}", repository_name);
 
@@ -24,6 +27,24 @@ async fn scan_repository(
     let mut pull_requests_to_review: Vec<GithubPullRequest> = vec![];
 
     info!("Found {} PR's", pull_requests.len());
+
+    let user_list: Vec<usize> = if !announced_team.is_empty() {
+        info!("Getting team members for team {} ", announced_team);
+        match GithubUser::list(announced_team, github_token).await {
+            Ok(users) => users.iter().map(|u| u.id).collect(),
+            Err(e) => {
+                if let Some(announced_users) = announced_users {
+                    announced_users.clone()
+                } else {
+                    return Err(e);
+                }
+            }
+        }
+    } else if let Some(announced_users) = announced_users {
+        announced_users.clone()
+    } else {
+        Vec::new()
+    };
 
     for pull_request in pull_requests {
         let is_public = pull_request.head.repo.visibility == PUBLIC_REPO;
@@ -55,8 +76,9 @@ async fn scan_repository(
             continue;
         }
 
-        if let Some(announced_users) = announced_users {
-            if !announced_users.contains(&pull_request.user.id) {
+        let users = &user_list;
+        {
+            if !users.contains(&pull_request.user.id) {
                 if is_public {
                     info!("Users to announce: {:?}", announced_users);
                     info!(
@@ -115,7 +137,7 @@ async fn scan_repository(
             }
         }
 
-        if !has_approved_reviews {
+        if !has_approved_reviews || allow_approved_prs {
             pull_requests_to_review.push(pull_request);
         }
     }
@@ -135,6 +157,7 @@ async fn main() -> Result<(), Error> {
         env::var("GOOGLE_WEBHOOK_URL").context("GOOGLE_WEBHOOK_URL must be set")?;
     let ignored_users: String = env::var("GITHUB_IGNORED_USERS").unwrap_or("".to_string());
     let ignored_users: Vec<&str> = ignored_users.split(',').collect();
+    let announced_team: String = env::var("GITHUB_ANNOUNCED_TEAM").unwrap_or("".to_string());
     let announced_users: Option<Vec<usize>> =
         env::var("GITHUB_ANNOUNCED_USERS").ok().and_then(|s| {
             if s.is_empty() {
@@ -148,6 +171,9 @@ async fn main() -> Result<(), Error> {
     let show_pr_age: bool = env::var("SHOW_PR_AGE")
         .map(|v| v == "true")
         .unwrap_or(false);
+    let allow_approved_prs: bool = env::var("GITHUB_ALLOW_APPROVED")
+        .map(|v| v == "true")
+        .unwrap_or(false);
 
     let mut pull_requests_to_review: Vec<GithubPullRequest> = vec![];
 
@@ -157,8 +183,10 @@ async fn main() -> Result<(), Error> {
                 repository,
                 &github_token,
                 &ignored_users,
+                &announced_team,
                 &announced_users,
                 &ignored_labels,
+                allow_approved_prs,
             )
             .await?,
         );
