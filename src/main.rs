@@ -189,6 +189,17 @@ async fn main() -> Result<(), Error> {
         );
     }
 
+    //Prioritise PRs from humans
+    pull_requests_to_review.sort_by(|a, b| {
+        if a.user.r#type.to_lowercase() == "bot" && b.user.r#type.to_lowercase() != "bot" {
+            std::cmp::Ordering::Greater
+        } else if a.user.r#type.to_lowercase() != "bot" && b.user.r#type.to_lowercase() == "bot" {
+            std::cmp::Ordering::Less
+        } else {
+            std::cmp::Ordering::Equal
+        }
+    });
+
     if !pull_requests_to_review.is_empty() {
         let weekday = match chrono::offset::Local::now().date_naive().weekday() {
             chrono::Weekday::Mon => "Monday",
