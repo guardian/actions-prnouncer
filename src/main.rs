@@ -254,7 +254,9 @@ fn make_message(pull_request: GithubPullRequest, show_pr_age: bool) -> String {
         format!("👤 {}", pull_request.user.login)
     };
 
-    format!("{}{} \n\n{}\n", message, age_output, user)
+    let diff_size = format!("[+{}/-{}]", pull_request.additions, pull_request.deletions);
+
+    format!("{}{} \n\n{} {}\n", message, age_output, user, diff_size)
 }
 
 fn get_age(d1: DateTime<Utc>, d2: DateTime<Utc>) -> String {
