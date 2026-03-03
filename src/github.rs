@@ -14,6 +14,9 @@ pub struct GithubPullRequest {
     pub head: GithubBranch,
     pub labels: Vec<GithubLabel>,
     pub created_at: DateTime<Utc>,
+
+    #[serde(default, skip_deserializing)]
+    pub has_approved_reviews: bool,
 }
 
 #[derive(Deserialize, Debug)]

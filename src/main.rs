@@ -4,6 +4,7 @@ mod google;
 use anyhow::{Context, Error};
 use chrono::{DateTime, Datelike, Utc};
 use log::{info, Level};
+use core::hash;
 use std::env;
 
 use github::GithubPullRequest;
@@ -23,7 +24,7 @@ async fn scan_repository(
 ) -> Result<Vec<GithubPullRequest>, Error> {
     info!("\nStarting PR scan of {}", repository_name);
 
-    let pull_requests = GithubPullRequest::list(repository_name, github_token).await?;
+    let pull_requests: Vec<GithubPullRequest> = GithubPullRequest::list(repository_name, github_token).await?;
     let mut pull_requests_to_review: Vec<GithubPullRequest> = vec![];
 
     info!("Found {} PR's", pull_requests.len());
@@ -44,7 +45,7 @@ async fn scan_repository(
         announced_users.clone()
     };
 
-    for pull_request in pull_requests {
+    for mut pull_request in pull_requests {
         let is_public = pull_request.head.repo.visibility == PUBLIC_REPO;
 
         if is_public {
@@ -119,7 +120,7 @@ async fn scan_repository(
             );
         }
 
-        let mut has_approved_reviews = false;
+        pull_request.has_approved_reviews = false;
 
         for pull_request_review in pull_request_reviews {
             if is_public {
@@ -130,11 +131,11 @@ async fn scan_repository(
             }
 
             if pull_request_review.state == "APPROVED" {
-                has_approved_reviews = true;
+                pull_request.has_approved_reviews = true;
             }
         }
 
-        if !has_approved_reviews || allow_approved_prs {
+        if !pull_request.has_approved_reviews || allow_approved_prs {
             pull_requests_to_review.push(pull_request);
         }
     }
@@ -222,7 +223,7 @@ async fn main() -> Result<(), Error> {
                 "Sending message for PR {} #{}",
                 pull_request.head.repo.name, pull_request.number
             );
-            GoogleChatMessage::from(make_message(pull_request, show_pr_age))
+            GoogleChatMessage::from(make_message(pull_request, show_pr_age, allow_approved_prs))
                 .send(&webhook_url, &thread_key, 0)
                 .await?;
         }
@@ -233,7 +234,7 @@ async fn main() -> Result<(), Error> {
     Ok(())
 }
 
-fn make_message(pull_request: GithubPullRequest, show_pr_age: bool) -> String {
+fn make_message(pull_request: GithubPullRequest, show_pr_age: bool, allow_approved_prs: bool) -> String {
     let message = format!(
         "<{}|{}#{}> - {}",
         pull_request.html_url.replace("https://", ""),
@@ -248,13 +249,19 @@ fn make_message(pull_request: GithubPullRequest, show_pr_age: bool) -> String {
         "".to_string()
     };
 
+    let approval_flag = if allow_approved_prs & pull_request.has_approved_reviews {
+        format!(" ✅")
+    } else {
+        "".to_string()
+    };
+
     let user = if pull_request.user.r#type.to_lowercase() == "bot" {
         format!("🤖 {}", pull_request.user.login)
     } else {
         format!("👤 {}", pull_request.user.login)
     };
 
-    format!("{}{} \n\n{}\n", message, age_output, user)
+    format!("{}{}{} \n\n{}\n", message, age_output, approval_flag, user)
 }
 
 fn get_age(d1: DateTime<Utc>, d2: DateTime<Utc>) -> String {
