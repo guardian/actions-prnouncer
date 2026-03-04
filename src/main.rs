@@ -4,7 +4,6 @@ mod google;
 use anyhow::{Context, Error};
 use chrono::{DateTime, Datelike, Utc};
 use log::{info, Level};
-use core::hash;
 use std::env;
 
 use github::GithubPullRequest;
@@ -24,7 +23,8 @@ async fn scan_repository(
 ) -> Result<Vec<GithubPullRequest>, Error> {
     info!("\nStarting PR scan of {}", repository_name);
 
-    let pull_requests: Vec<GithubPullRequest> = GithubPullRequest::list(repository_name, github_token).await?;
+    let pull_requests: Vec<GithubPullRequest> =
+        GithubPullRequest::list(repository_name, github_token).await?;
     let mut pull_requests_to_review: Vec<GithubPullRequest> = vec![];
 
     info!("Found {} PR's", pull_requests.len());
@@ -234,7 +234,11 @@ async fn main() -> Result<(), Error> {
     Ok(())
 }
 
-fn make_message(pull_request: GithubPullRequest, show_pr_age: bool, allow_approved_prs: bool) -> String {
+fn make_message(
+    pull_request: GithubPullRequest,
+    show_pr_age: bool,
+    allow_approved_prs: bool,
+) -> String {
     let message = format!(
         "<{}|{}#{}> - {}",
         pull_request.html_url.replace("https://", ""),
@@ -250,7 +254,7 @@ fn make_message(pull_request: GithubPullRequest, show_pr_age: bool, allow_approv
     };
 
     let approval_flag = if allow_approved_prs & pull_request.has_approved_reviews {
-        format!(" ✅")
+        " ✅".to_string()
     } else {
         "".to_string()
     };
